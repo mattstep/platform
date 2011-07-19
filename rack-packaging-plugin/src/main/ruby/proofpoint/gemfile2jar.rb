@@ -32,8 +32,7 @@ module Proofpoint
   module GemToJarPackager
 
     class Gemfile2Jar
-
-      def self.run(gemfile_name, destination_jar_name, working_directory)
+      def run(gemfile_name, destination_jar_name, working_directory)
         g2d = Gemfile2Dir.new(working_directory)
         if (g2d.install_gems_from_gemfile(gemfile_name))
           d2j = Dir2Jar.new(g2d.bundle_path)
@@ -43,7 +42,6 @@ module Proofpoint
         end
         return false
       end
-
     end
 
 
@@ -67,8 +65,8 @@ module Proofpoint
           Bundler.configure
           definition = Bundler::Definition.build(gemfile, @lockfile, nil)
           Bundler::Installer::install(root, definition, {})
-        rescue Exception
-          puts $!
+        rescue Exception => e
+          puts e.message
           clean_working_directory
           return false
         end

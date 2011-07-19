@@ -27,6 +27,7 @@ import org.jruby.Ruby;
 import org.jruby.RubyBasicObject;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyInstanceConfig;
+import org.jruby.RubyObjectAdapter;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.builtin.IRubyObject;
 
@@ -35,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+
+import static org.jruby.javasupport.JavaEmbedUtils.javaToRuby;
 
 /**
  * @goal rack-package
@@ -89,11 +92,18 @@ public class RackPackager
 
             gem2JarStream.close();
 
-            IRubyObject response = runtime.evalScriptlet(String.format("Proofpoint::GemToJarPackager::Gemfile2Jar.run('%s','%s','%s')",
-                    gemfile.getCanonicalPath(),
-                    String.format("%s/%s-%s-gemrepo.jar", outputDirectory.getCanonicalPath(), project.getName(), project.getVersion()),
-                    Files.createTempDir().getCanonicalPath()
-            ));
+            RubyObjectAdapter adapter = JavaEmbedUtils.newObjectAdapter();
+
+            IRubyObject gemfile2jar = runtime.evalScriptlet("Proofpoint::GemToJarPackager::Gemfile2Jar.new");
+
+            String resultingGemrepoJarLocation = String.format("%s/%s-%s-gemrepo.jar", outputDirectory.getCanonicalPath(), project.getName(), project.getVersion());
+
+            IRubyObject response = adapter.callMethod(gemfile2jar, "run",
+                    new IRubyObject[] {
+                        javaToRuby(runtime, gemfile.getCanonicalPath()),
+                        javaToRuby(runtime, resultingGemrepoJarLocation),
+                        javaToRuby(runtime, Files.createTempDir().getCanonicalPath())
+                    });
 
             if(!response.isTrue())
             {
