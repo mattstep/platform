@@ -35,7 +35,7 @@ public class TestRackServletConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(RackServletConfig.class)
-                .setRackConfigPath("config.ru"));
+                .setRackConfigPath("rack/config.ru"));
     }
 
     @Test

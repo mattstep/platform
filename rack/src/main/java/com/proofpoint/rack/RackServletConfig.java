@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
 public class RackServletConfig
 {
     //Defaults to assuming config.ru is in the root.
-    private String rackConfigPath = "config.ru";
+    private String rackConfigPath = "rack/config.ru";
 
     @NotNull
     public String getRackConfigPath()
