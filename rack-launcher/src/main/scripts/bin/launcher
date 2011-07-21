@@ -33,5 +33,7 @@
 #
 # Requires Java to be in PATH
 
-require './launcher'
+$:.unshift File.join(File.dirname(__FILE__), *%w[.. bin])
+require 'launcher.rb'
+
 Launcher::CLI.execute(ARGV)

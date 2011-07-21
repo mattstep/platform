@@ -15,7 +15,6 @@
  */
 package com.proofpoint.rackpackager;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 import com.google.common.io.Resources;
@@ -24,8 +23,6 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.jruby.Ruby;
-import org.jruby.RubyBasicObject;
-import org.jruby.RubyBoolean;
 import org.jruby.RubyInstanceConfig;
 import org.jruby.RubyObjectAdapter;
 import org.jruby.javasupport.JavaEmbedUtils;
@@ -104,6 +101,7 @@ public class RackPackager
                         javaToRuby(runtime, resultingGemrepoJarLocation),
                         javaToRuby(runtime, Files.createTempDir().getCanonicalPath())
                     });
+
 
             if(!response.isTrue())
             {

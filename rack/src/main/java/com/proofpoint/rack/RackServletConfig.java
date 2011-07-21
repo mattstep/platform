@@ -25,6 +25,21 @@ public class RackServletConfig
     //Defaults to assuming config.ru is in the root.
     private String rackConfigPath = "rack/config.ru";
 
+    private String staticContentPath = "rack/public";
+
+    @NotNull
+    public String getStaticContentPath()
+    {
+        return staticContentPath;
+    }
+
+    @Config("rackserver.static-content-path")
+    @ConfigDescription("A path to the static content to serve for the rack application")
+    public void setStaticContentPath(String staticContentPath)
+    {
+        this.staticContentPath = staticContentPath;
+    }
+
     @NotNull
     public String getRackConfigPath()
     {

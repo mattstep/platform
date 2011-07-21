@@ -27,6 +27,7 @@
             <directory>${basedir}</directory>
             <outputDirectory>rack/</outputDirectory>
             <excludes>
+                <exclude>Gemfile*</exclude> <!-- Rails and other frameworks try to bundle install on startup if they see a gemfile -->
                 <exclude>target/**</exclude>
                 <exclude>*.iml</exclude>
                 <exclude>*.ipr</exclude>
@@ -67,7 +68,7 @@
             <unpack>true</unpack>
             <outputDirectory>/</outputDirectory>
             <includes>
-                <include>com.proofpoint.platform:rack-launcher</include>
+                <include>com.proofpoint.platform:rack-launcher-experimental</include>
             </includes>
         </dependencySet>
     </dependencySets>

@@ -158,6 +158,7 @@ module Launcher
       command_parts <<= "-Dconfig=#{config_path}"
       command_parts <<= "-Dlog.output-file=#{options[:log_path]}" if options[:daemon]
       command_parts <<= "-Dlog.levels-file=#{options[:log_levels_path]}" if File.exists?(options[:log_levels_path])
+      command_parts <<= "-Drackserver.rack-config-path=#{options[:rack_config]}" if File.exists?(options[:rack_config])
       command_parts <<= "-cp '#{class_path}'"
       command_parts <<= "com.proofpoint.rack.Main"
 
@@ -169,7 +170,7 @@ module Launcher
     def self.copy_config()
       install_path = Pathname.new(__FILE__).parent.parent.expand_path
 
-      FileUtils.cp_r "#{install_path}/etc/.", "#{install_path}/rack/" if Dir.exist? "#{install_path}/etc/"
+      FileUtils.cp_r "#{install_path}/etc/.", "#{install_path}/rack/config/" if Dir.exist? "#{install_path}/etc/"
     end
 
     def self.run(options)
@@ -280,7 +281,8 @@ module Launcher
               :log_levels_path => File.join(install_path, 'etc', 'log.config'),
               :install_path => install_path,
               :system_properties => [],
-              :environment => {'RACK_ENV' => 'production', 'RAILS_ENV' => 'production'}
+              :environment => {'RACK_ENV' => 'production', 'RAILS_ENV' => 'production'},
+              :rack_config => File.join(install_path, 'rack', 'config.ru')
               }
 
       option_parser = OptionParser.new(:unknown_options_action => :collect) do |opts|
@@ -293,6 +295,17 @@ module Launcher
           Options:
         BANNER
         opts.banner = strip(banner)
+
+        opts.on("--data DIR", "Defaults to INSTALL_PATH") do |v|
+          options[:data_dir] = Pathname.new(v).expand_path
+        end
+
+        opts.on("-D<name>=<value>", "Sets a Java System property") do |v|
+          if v.start_with?("config=") then
+            raise("Config can not be passed in a -D argument.  Use --config instead")
+          end
+          options[:system_properties] << "-D#{v}"
+        end
 
         opts.on("-v", "--verbose", "Run verbosely") do |v|
           options[:verbose] = true

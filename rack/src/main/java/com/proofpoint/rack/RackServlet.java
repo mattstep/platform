@@ -46,6 +46,7 @@ public class RackServlet
     private final IRubyObject rackApplication;
     private final Ruby runtime;
     private final RubyObjectAdapter adapter = JavaEmbedUtils.newObjectAdapter();
+    private final File staticContentDirectory;
 
     //Servlet config to support the convention of getServletConfig/init
     private ServletConfig servletConfig = null;
@@ -60,6 +61,8 @@ public class RackServlet
 
         Preconditions.checkArgument(rackScriptFile.exists(), "Could not find rack script specified by [" + config.getRackConfigPath()
                 + "] and resolved to [" + rackScriptFile.getAbsolutePath() + "]");
+
+        staticContentDirectory = new File(config.getStaticContentPath());
 
         runtime = JavaEmbedUtils.initialize(ImmutableList.of(rackScriptFile.getParentFile().getCanonicalPath()), createRuntimeConfig());
 
@@ -117,10 +120,18 @@ public class RackServlet
         Preconditions.checkArgument((request instanceof HttpServletRequest), "Expected a servlet request that implements HttpServletRequest, this servlet only supports Http(s)");
         Preconditions.checkArgument((response instanceof HttpServletResponse), "Expected a servlet response that implements HttpServletResponse, this servlet only supports Http(s)");
 
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+
+        if (httpRequest.getPathTranslated() != null && staticContentDirectory.exists() && staticContentDirectory.canRead()) {
+            File staticContentFile = new File(staticContentDirectory.getCanonicalPath() + "/" + httpRequest.getPathTranslated());
+
+        }
+
         adapter.callMethod(rackApplication, "call",
                 new IRubyObject[] {
-                        javaToRuby(runtime, request),
-                        javaToRuby(runtime, response)
+                        javaToRuby(runtime, httpRequest),
+                        javaToRuby(runtime, httpResponse)
                 });
     }
 
