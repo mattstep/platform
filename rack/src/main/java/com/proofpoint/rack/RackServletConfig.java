@@ -35,9 +35,10 @@ public class RackServletConfig
 
     @Config("rackserver.static-content-path")
     @ConfigDescription("A path to the static content to serve for the rack application")
-    public void setStaticContentPath(String staticContentPath)
+    public RackServletConfig setStaticContentPath(String staticContentPath)
     {
         this.staticContentPath = staticContentPath;
+        return this;
     }
 
     @NotNull

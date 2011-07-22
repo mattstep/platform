@@ -17,6 +17,7 @@ package com.proofpoint.rack;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.common.io.Resources;
 import org.jruby.Ruby;
 import org.jruby.RubyInstanceConfig;
@@ -35,6 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
@@ -123,9 +125,16 @@ public class RackServlet
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if (httpRequest.getPathTranslated() != null && staticContentDirectory.exists() && staticContentDirectory.canRead()) {
-            File staticContentFile = new File(staticContentDirectory.getCanonicalPath() + "/" + httpRequest.getPathTranslated());
+        System.err.println("Trying to render " + httpRequest.getPathTranslated());
 
+        if (httpRequest.getPathTranslated() != null && staticContentDirectory.exists() && staticContentDirectory.canRead()) {
+            System.err.println("Trying to render " + httpRequest.getPathTranslated() + " Statically");
+            File staticContentFile = new File(staticContentDirectory.getCanonicalPath() + "/" + httpRequest.getPathTranslated());
+            if (staticContentFile.exists() && staticContentFile.canRead()) {
+                System.err.println("Trying to render " + httpRequest.getPathTranslated() + " With static file " + staticContentFile.getCanonicalPath());
+                OutputStream out = httpResponse.getOutputStream();
+                Files.copy(staticContentFile, out);
+            }
         }
 
         adapter.callMethod(rackApplication, "call",

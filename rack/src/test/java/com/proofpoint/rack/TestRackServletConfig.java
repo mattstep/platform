@@ -35,15 +35,21 @@ public class TestRackServletConfig
     public void testDefaults()
     {
         ConfigAssertions.assertRecordedDefaults(ConfigAssertions.recordDefaults(RackServletConfig.class)
-                .setRackConfigPath("rack/config.ru"));
+                .setRackConfigPath("rack/config.ru")
+                .setStaticContentPath("rack/public"));
     }
 
     @Test
     public void testExplicitPropertyMappings()
     {
-        Map<String, String> properties = ImmutableMap.of("rackserver.rack-config-path", "rack-configuration.ru");
+        Map<String, String> properties = ImmutableMap.<String,String>builder()
+                .put("rackserver.rack-config-path", "rack-configuration.ru")
+                .put("rackserver.static-content-path", "static-content-awesome")
+                .build();
 
-        RackServletConfig expected = new RackServletConfig().setRackConfigPath("rack-configuration.ru");
+        RackServletConfig expected = new RackServletConfig()
+                .setRackConfigPath("rack-configuration.ru")
+                .setStaticContentPath("static-content-awesome");
 
         ConfigAssertions.assertFullMapping(properties, expected);
     }
@@ -51,9 +57,8 @@ public class TestRackServletConfig
     @Test
     public void testValidConfig()
     {
-        RackServletConfig config = new RackServletConfig().setRackConfigPath(null);
-        Assertions.assertEqualsIgnoreOrder(getBeanValidationErrors(config), ImmutableList.of("rackConfigPath may not be null"));
-
+        RackServletConfig config = new RackServletConfig().setRackConfigPath(null).setStaticContentPath(null);
+        Assertions.assertEqualsIgnoreOrder(getBeanValidationErrors(config), ImmutableList.of("rackConfigPath may not be null", "staticContentPath may not be null"));
     }
 
     private static List<String> getBeanValidationErrors(RackServletConfig config)

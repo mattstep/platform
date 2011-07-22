@@ -159,6 +159,7 @@ module Launcher
       command_parts <<= "-Dlog.output-file=#{options[:log_path]}" if options[:daemon]
       command_parts <<= "-Dlog.levels-file=#{options[:log_levels_path]}" if File.exists?(options[:log_levels_path])
       command_parts <<= "-Drackserver.rack-config-path=#{options[:rack_config]}" if File.exists?(options[:rack_config])
+      command_parts <<= "-Drackserver.static-content-path=#{options[:static_content]}" if Dir.exists?(options[:static_content])
       command_parts <<= "-cp '#{class_path}'"
       command_parts <<= "com.proofpoint.rack.Main"
 
@@ -282,7 +283,8 @@ module Launcher
               :install_path => install_path,
               :system_properties => [],
               :environment => {'RACK_ENV' => 'production', 'RAILS_ENV' => 'production'},
-              :rack_config => File.join(install_path, 'rack', 'config.ru')
+              :rack_config => File.join(install_path, 'rack', 'config.ru'),
+              :static_content => File.join(install_path, 'rack', 'public')
               }
 
       option_parser = OptionParser.new(:unknown_options_action => :collect) do |opts|

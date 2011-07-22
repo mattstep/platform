@@ -28,11 +28,17 @@ import org.jruby.RubyObjectAdapter;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.builtin.IRubyObject;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import static org.jruby.javasupport.JavaEmbedUtils.javaToRuby;
 
@@ -91,17 +97,17 @@ public class RackPackager
 
             RubyObjectAdapter adapter = JavaEmbedUtils.newObjectAdapter();
 
-            IRubyObject gemfile2jar = runtime.evalScriptlet("Proofpoint::GemToJarPackager::Gemfile2Jar.new");
+            IRubyObject gemfile2jar = runtime.evalScriptlet("Proofpoint::GemToJarPackager::Gemfile2JDir.new");
 
-            String resultingGemrepoJarLocation = String.format("%s/%s-%s-gemrepo.jar", outputDirectory.getCanonicalPath(), project.getName(), project.getVersion());
+            File gemrepoDirectory = Files.createTempDir();
 
             IRubyObject response = adapter.callMethod(gemfile2jar, "run",
-                    new IRubyObject[] {
-                        javaToRuby(runtime, gemfile.getCanonicalPath()),
-                        javaToRuby(runtime, resultingGemrepoJarLocation),
-                        javaToRuby(runtime, Files.createTempDir().getCanonicalPath())
+                    new IRubyObject[]{
+                            javaToRuby(runtime, gemrepoDirectory.getCanonicalPath()),
+                            javaToRuby(runtime, gemfile.getCanonicalPath())
                     });
 
+            generateJarFile(gemrepoDirectory);
 
             if(!response.isTrue())
             {
@@ -117,6 +123,48 @@ public class RackPackager
             {
                 JavaEmbedUtils.terminate(runtime);
             }
+        }
+    }
+
+    private void generateJarFile(File gemrepoDirectory)
+            throws IOException
+    {
+        File gemrepoJarFile = new File(String.format("%s/%s-%s-gemrepo.jar", outputDirectory.getCanonicalPath(), project.getName(), project.getVersion()));
+
+        JarOutputStream gemrepoJarOutputStream = new JarOutputStream(new FileOutputStream(gemrepoJarFile), new Manifest());
+        gemrepoJarOutputStream.close();
+
+        addFilesToJarRecursivelyIgnoringSymlinks(gemrepoJarFile, gemrepoDirectory, "");
+    }
+
+    private void addFilesToJarRecursivelyIgnoringSymlinks(File jarFile, File directory, String path)
+    {
+        for(File child : directory.listFiles())
+        {
+            if (!isSymbolicLink(child)) {
+                if(child.isDirectory()) {
+                    addFilesToJarRecursivelyIgnoringSymlinks(jarFile, child, path + child.getName() + "/");
+                } else
+                {
+                    JarEntry jarEntry = new
+
+                }
+        }
+    }
+
+    private boolean isSymbolicLink(File file)
+    {
+        try {
+            File canonicalFile = file.getCanonicalFile();
+            File absoluteFile = file.getAbsoluteFile();
+            // a symbolic link has a different name between the canonical and absolute path
+            return !canonicalFile.getName().equals(absoluteFile.getName()) ||
+                    // or the canonical parent path is not the same as the files parent path
+                    !canonicalFile.getParent().equals(file.getParentFile().getCanonicalPath());
+        }
+        catch (IOException e) {
+            // error on the side of caution
+            return true;
         }
     }
 

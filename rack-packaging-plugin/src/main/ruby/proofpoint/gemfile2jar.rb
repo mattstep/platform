@@ -15,7 +15,6 @@
 require 'rubygems'
 require 'bundler'
 require 'rubygems/dependency_installer'
-require 'fileutils'
 
 # This is required because Bundler memoizes its initial configuration,
 # which is all fine and dandy for normal operation, but plays hell when
@@ -31,34 +30,15 @@ end
 module Proofpoint
   module GemToJarPackager
 
-    class Gemfile2Jar
-      def run(gemfile_name, destination_jar_name, working_directory)
-        g2d = Gemfile2Dir.new(working_directory)
-        if (g2d.install_gems_from_gemfile(gemfile_name))
-          d2j = Dir2Jar.new(g2d.bundle_path)
-          d2j.sanitize_source
-          d2j.create_jar_with_name(destination_jar_name)
-          return true
-        end
-        return false
-      end
-    end
-
-
     class Gemfile2Dir
-
-      def initialize(target_dir)
-        @target = target_dir
-      end
-
-      def install_gems_from_gemfile(gemfile_name)
+      def install_gems_from_gemfile(target_dir, gemfile_name)
         gemfile = Pathname.new(gemfile_name).expand_path
         root = gemfile.dirname
         @lockfile = root.join("#{gemfile.basename}.lock")
 
         ENV['BUNDLE_GEMFILE'] = gemfile
 
-        Bundler.settings[:path] = @target
+        Bundler.settings[:path] = target_dir
         Bundler.settings[:disable_shared_gems] = 1
 
         begin
@@ -67,42 +47,10 @@ module Proofpoint
           Bundler::Installer::install(root, definition, {})
         rescue Exception => e
           puts e.message
-          clean_working_directory
           return false
         end
         return true
       end
-
-      def bundle_path
-        "#{@target}/#{Gem.ruby_engine}/#{Gem::ConfigMap[:ruby_version]}"
-      end
-
-      def clean_working_directory
-        Bundler.reset
-        FileUtils.rm_rf(@target)
-        FileUtils.rm_rf(@lockfile) unless @lockfile.nil?
-      end
     end
-
-
-    class Dir2Jar
-
-      def initialize(source_dir)
-        @source = source_dir
-      end
-
-      def create_jar_with_name(jar_name)
-        jar_name = (jar_name + '.jar') unless jar_name.end_with?('.jar')
-        system("jar cf #{jar_name} -C #{@source} .")
-      end
-
-      def sanitize_source
-        FileUtils.rm_rf("#{@source}/bin")
-        FileUtils.rm_rf("#{@source}/cache")
-        FileUtils.rm_rf("#{@source}/doc")
-      end
-
-    end
-
   end
 end
