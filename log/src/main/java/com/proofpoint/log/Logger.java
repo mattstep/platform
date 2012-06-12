@@ -18,6 +18,7 @@ package com.proofpoint.log;
 import ch.qos.logback.classic.Level;
 import com.google.inject.Inject;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.util.IllegalFormatException;
 
@@ -56,6 +57,11 @@ public class Logger
     {
         org.slf4j.Logger logger = LoggerFactory.getLogger(name);
         return new Logger(logger);
+    }
+
+    public static void setTraceToken(String traceToken)
+    {
+        MDC.put(Logging.TRACE_TOKEN, traceToken);
     }
 
     /**

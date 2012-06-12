@@ -1,6 +1,7 @@
 package com.proofpoint.http.server;
 
 import com.proofpoint.tracetoken.TraceTokenManager;
+import org.slf4j.MDC;
 
 import javax.inject.Inject;
 import javax.servlet.Filter;
